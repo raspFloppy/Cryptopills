@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: data-fetch.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: data-fetch.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>//API
+const CoinGecko = require('coingecko-api');
+const CoinGeckoClient = new CoinGecko();
+
+//Implementa i dotenv
+require('dotenv').config();
+
+//DB
+const database = require('../database/database.js');
+const db = new database(process.env.DB_HOST, process.env.DB_USER, process.env.DB_PASSWORD, process.env.DB_NAME);    
+
+
+
+/**
+ * @module dataFetching
+ * 
+ */
+module.exports = class dataFetching {
+        /**
+         * constructor
+         */
+        constructor() {
+                this.crypto_price;
+                this.crypto_market;
+                this.one_day_delay = process.env.ONE_DAY_DELAY;      //Delay DI 24h
+                this.five_min_delay = process.env.FIVE_MIN_DELAY;     //Delay di 5 minuti
+        }        
+
+
+        /**
+         * @method getCryptoPrice()
+         * &lt;br />
+         * Richiede i dati  riguardanti i prezzi delle cryptovalute all'API CoinGecko 
+         * e li inserisce all'interno del database.
+         * 
+         */
+        async getCryptoPrice() {
+                while(true) {
+                        try {
+                           this.crypto_price = await CoinGeckoClient.coins.markets({ ids: ['0x', 'aave', 'algorand', 'amp-token', 'ankr', 'arweave', 'avalanche-2', 'bancor', 'basic-attention-token', 'binance-usd', 'binancecoin', 'bitcoin', 'bitcoin-cash', 'bitcoin-cash-sv', 'bitcoin-gold', 'bittorrent-2', 'blockstack', 'cardano', 'cdai', 'celsius-degree-token', 'chainlink', 'chiliz', 'compound-ether', 'compound-governance-token', 'compound-usd-coin', 'cosmos', 'crypto-com-chain', 'dai', 'dash', 'decentraland', 'decred', 'digibyte', 'dogecoin', 'elrond-erd-2', 'enjincoin', 'eos', 'ethereum', 'ethereum-classic', 'fantom', 'filecoin', 'flow', 'ftx-token', 'harmony', 'havven', 'hedera-hashgraph', 'helium', 'holotoken', 'huobi-btc', 'huobi-token', 'icon', 'iostoken', 'iota', 'klay-token', 'kusama', 'leo-token', 'liquity-usd', 'litecoin', 'maker', 'matic-network', 'monero', 'nano', 'near', 'nem', 'neo', 'nexo', 'okb', 'omisego', 'ontology', 'pancakeswap-token', 'paxos-standard', 'polkadot', 'qtum', 'ravencoin', 'ripple', 'siacoin', 'solana', 'stellar', 'sushi', 'swissborg', 'telcoin', 'terra-luna', 'terrausd', 'tether', 'tezos', 'the-graph', 'theta-token', 'thorchain', 'tron', 'uma', 'uniswap', 'usd-coin', 'vechain', 'venus', 'waves', 'wrapped-bitcoin', 'yearn-finance', 'zcash', 'zencash', 'zilliqa'] });
+                           
+                           this.crypto_price.data.forEach(element => {
+                                db.insert_price(process.env.CRYPTO_PRICE, element);
+                           });
+                        
+                                await new Promise( resolve => setTimeout(resolve, this.five_min_delay) ); 
+                        } catch (err) {
+                                console.error('caught: ', err);
+                        }
+                }
+        }
+
+        /**
+         * @method getCryptoMarket()
+         * &lt;br />
+         * Richiede i dati  riguardanti le info di mercato delle cryptovalute all'API CoinGecko 
+         * e li inserisce all'interno del database.
+         * 
+         */
+        async getCryptoMarket() {
+                while(true) {
+                        try {
+                           this.crypto_market = await CoinGeckoClient.coins.markets({ ids: ['0x', 'aave', 'algorand', 'amp-token', 'ankr', 'arweave', 'avalanche-2', 'bancor', 'basic-attention-token', 'binance-usd', 'binancecoin', 'bitcoin', 'bitcoin-cash', 'bitcoin-cash-sv', 'bitcoin-gold', 'bittorrent-2', 'blockstack', 'cardano', 'cdai', 'celsius-degree-token', 'chainlink', 'chiliz', 'compound-ether', 'compound-governance-token', 'compound-usd-coin', 'cosmos', 'crypto-com-chain', 'dai', 'dash', 'decentraland', 'decred', 'digibyte', 'dogecoin', 'elrond-erd-2', 'enjincoin', 'eos', 'ethereum', 'ethereum-classic', 'fantom', 'filecoin', 'flow', 'ftx-token', 'harmony', 'havven', 'hedera-hashgraph', 'helium', 'holotoken', 'huobi-btc', 'huobi-token', 'icon', 'iostoken', 'iota', 'klay-token', 'kusama', 'leo-token', 'liquity-usd', 'litecoin', 'maker', 'matic-network', 'monero', 'nano', 'near', 'nem', 'neo', 'nexo', 'okb', 'omisego', 'ontology', 'pancakeswap-token', 'paxos-standard', 'polkadot', 'qtum', 'ravencoin', 'ripple', 'siacoin', 'solana', 'stellar', 'sushi', 'swissborg', 'telcoin', 'terra-luna', 'terrausd', 'tether', 'tezos', 'the-graph', 'theta-token', 'thorchain', 'tron', 'uma', 'uniswap', 'usd-coin', 'vechain', 'venus', 'waves', 'wrapped-bitcoin', 'yearn-finance', 'zcash', 'zencash', 'zilliqa'] });
+                           
+                           this.crypto_market.data.forEach(element => {
+                                   db.insert_market(process.env.CRYPTO_MARKET, element);
+                           });
+                        
+                                console.log('Its working');
+                                await new Promise( resolve => setTimeout(resolve, this.one_day_delay)); 
+                        } catch (err) {
+                                console.error('caught: ', err);
+                        }
+                }
+        }
+
+        /**
+         * @method getCryptoInfo() 
+         * &lt;br />
+         * Richiede i dati  riguardanti i le informazioni generali delle cryptovalute all'API CoinGecko 
+         * e li inserisce all'interno del database.
+         * 
+         */
+        async getCryptoInfo() {
+                try {
+                   this.crypto_price = await CoinGeckoClient.coins.markets({ ids: ['0x', 'aave', 'algorand', 'amp-token', 'ankr', 'arweave', 'avalanche-2', 'bancor', 'basic-attention-token', 'binance-usd', 'binancecoin', 'bitcoin', 'bitcoin-cash', 'bitcoin-cash-sv', 'bitcoin-gold', 'bittorrent-2', 'blockstack', 'cardano', 'cdai', 'celsius-degree-token', 'chainlink', 'chiliz', 'compound-ether', 'compound-governance-token', 'compound-usd-coin', 'cosmos', 'crypto-com-chain', 'dai', 'dash', 'decentraland', 'decred', 'digibyte', 'dogecoin', 'elrond-erd-2', 'enjincoin', 'eos', 'ethereum', 'ethereum-classic', 'fantom', 'filecoin', 'flow', 'ftx-token', 'harmony', 'havven', 'hedera-hashgraph', 'helium', 'holotoken', 'huobi-btc', 'huobi-token', 'icon', 'iostoken', 'iota', 'klay-token', 'kusama', 'leo-token', 'liquity-usd', 'litecoin', 'maker', 'matic-network', 'monero', 'nano', 'near', 'nem', 'neo', 'nexo', 'okb', 'omisego', 'ontology', 'pancakeswap-token', 'paxos-standard', 'polkadot', 'qtum', 'ravencoin', 'ripple', 'siacoin', 'solana', 'stellar', 'sushi', 'swissborg', 'telcoin', 'terra-luna', 'terrausd', 'tether', 'tezos', 'the-graph', 'theta-token', 'thorchain', 'tron', 'uma', 'uniswap', 'usd-coin', 'vechain', 'venus', 'waves', 'wrapped-bitcoin', 'yearn-finance', 'zcash', 'zencash', 'zilliqa'] });
+                   
+                   this.crypto_price.data.forEach(element => {
+                        db.insert_info(process.env.CRYPTO_INFO, element);
+                   });
+                
+                   await new Promise(); 
+                } catch (err) {
+                        console.error('caught: ', err);
+                }
+        }
+}
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-dataFetching.html">dataFetching</a></li></ul><h3>Classes</h3><ul><li><a href="module-dataFetching.html">dataFetching</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.7</a> on Tue May 18 2021 12:56:13 GMT+0200 (Central European Summer Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
